@@ -1,6 +1,6 @@
 use anchor_lang::{prelude::*, solana_program::system_program};
 use anchor_lang::{AccountDeserialize, AnchorDeserialize};
-use anchor_spl::token::{self, TokenAccount, Transfer};
+use anchor_spl::token::{self, TokenAccount, Transfer, Token};
 
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
