@@ -170,7 +170,7 @@ pub struct CloseAuction<'info> {
     #[account(
         mut,
         constraint = item_holder.to_account_info().key == &auction.item_holder,
-        constraint = &item_holder.owner == auction_singer.key(
+        constraint = &item_holder.owner == auction_singer.key()
     )]
     item_holder: CpiAccount<'info, TokenAccount>,
     /// CHECK: This is auction signer. no need to check
@@ -183,7 +183,7 @@ pub struct CloseAuction<'info> {
     #[account(
         mut,
         constraint = currency_holder.to_account_info().key == &auction.currency_holder,
-        constraint = &currency_holder.owner == auction_singer.key(
+        constraint = &currency_holder.owner == auction_singer.key()
     )]
     currency_holder: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
