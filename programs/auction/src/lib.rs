@@ -119,9 +119,9 @@ pub struct CreateAuction<'info> {
         payer = seller,
         seeds = [
             bidder.to_account_info().key.as_ref(), 
-
             "auction".as_bytes(),
         ],
+        bump,
         space = 8 + 1 + 35 * 5 + 8,
     )]
     auction: Box<Account<'info, Auction>>,
@@ -162,6 +162,7 @@ pub struct CreateBid<'info> {
             bidder.to_account_info().key.as_ref(), 
             "bid".as_bytes(),
         ],
+        bump,
         space = 8 + 32 + 8,
     )]
     bid: Box<Account<'info, Bid>>,
