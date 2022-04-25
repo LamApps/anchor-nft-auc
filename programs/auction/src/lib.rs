@@ -18,7 +18,7 @@ mod auction {
         Ok(())
     }
 
-    pub fn bid(ctx: Context<Bid>, price: u64) -> Result<()> {
+    pub fn create_bid(ctx: Context<CreateBid>, price: u64) -> Result<()> {
         let auction = &mut ctx.accounts.auction;
 
         // check bid price
@@ -123,7 +123,7 @@ pub struct CreateAuction<'info> {
 }
 
 #[derive(Accounts)]
-pub struct Bid<'info> {
+pub struct CreateBid<'info> {
     #[account(
         mut, 
         constraint = auction.ongoing,
