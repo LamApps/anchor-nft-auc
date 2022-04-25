@@ -121,10 +121,8 @@ pub struct CreateAuction<'info> {
             bidder.to_account_info().key.as_ref(), 
             "auction".as_bytes(),
         ],
-        bump = nonce,
-        space = 8 + 1 + 35 * 5 + 8,
     )]
-    auction: Box<Account<'info, Auction>>,
+    auction: ProgramAccount<'info, Auction>,
     #[account(mut)]
     seller: Signer<'info>,
     #[account(
@@ -152,9 +150,12 @@ pub struct CreateBid<'info> {
         mut, 
         constraint = auction.ongoing,
         has_one = currency_holder,
-        
+        seeds = [
+            bidder.to_account_info().key.as_ref(), 
+            "auction".as_bytes(),
+        ],
     )]
-    auction: Box<Account<'info, Auction>>,
+    auction: ProgramAccount<'info, Auction>,
     #[account(
         init,
         payer = bidder,
@@ -162,10 +163,8 @@ pub struct CreateBid<'info> {
             bidder.to_account_info().key.as_ref(), 
             "bid".as_bytes(),
         ],
-        bump = nonce,
-        space = 8 + 32 + 8,
     )]
-    bid: Box<Account<'info, Bid>>,
+    bid: ProgramAccount<'info, Bid>,
     #[account(mut)]
     bidder: Signer<'info>,
     #[account(
@@ -197,7 +196,7 @@ pub struct CloseAuction<'info> {
         mut, 
         constraint = auction.ongoing
     )]
-    auction: Box<Account<'info, Auction>>,
+    auction: ProgramAccount<'info, Auction>,
     seller: Signer<'info>,
     #[account(
         mut,
