@@ -121,7 +121,6 @@ pub struct CreateAuction<'info> {
             bidder.to_account_info().key.as_ref(), 
             "auction".as_bytes(),
         ],
-        bump = nonce
     )]
     auction: ProgramAccount<'info, Auction>,
     #[account(mut)]
@@ -142,6 +141,8 @@ pub struct CreateAuction<'info> {
     auction_singer: UncheckedAccount<'info>,
     rent: Sysvar<'info, Rent>,
     token_program: Program<'info, Token>,
+    #[account(address = system_program::ID)]
+    system_program: AccountInfo<'info>,
 }
 
 #[derive(Accounts)]
@@ -155,7 +156,6 @@ pub struct CreateBid<'info> {
             bidder.to_account_info().key.as_ref(), 
             "auction".as_bytes(),
         ],
-        bump = nonce,
     )]
     auction: ProgramAccount<'info, Auction>,
     #[account(
