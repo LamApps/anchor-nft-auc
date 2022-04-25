@@ -1,9 +1,11 @@
-use anchor_lang::prelude::*;
+use anchor_lang::{prelude::*, solana_program::system_program};
 use anchor_lang::{AccountDeserialize, AnchorDeserialize};
 use anchor_spl::token::{self, TokenAccount, Transfer};
 
+declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+
 #[program]
-mod auction {
+pub mod auction {
     use super::*;
 
     pub fn create_auction(ctx: Context<CreateAuction>, start_price: u64) -> Result<()> {
