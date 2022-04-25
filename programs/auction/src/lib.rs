@@ -35,7 +35,7 @@ mod auction {
             let cpi_accounts = Transfer {
                 from: ctx.accounts.currency_holder.to_account_info().clone(),
                 to: ctx.accounts.ori_refund_receiver.to_account_info().clone(),
-                authority: ctx.accounts.auction_singer.clone(),
+                authority: ctx.accounts.auction_singer.to_account_info(),
             };
             let cpi_program = ctx.accounts.token_program.clone();
             let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
@@ -46,7 +46,7 @@ mod auction {
         let cpi_accounts = Transfer {
             from: ctx.accounts.from.to_account_info().clone(),
             to: ctx.accounts.currency_holder.to_account_info().clone(),
-            authority: ctx.accounts.from_auth.clone(),
+            authority: ctx.accounts.auction_singer.to_account_info(),
         };
         let cpi_program = ctx.accounts.token_program.clone();
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
