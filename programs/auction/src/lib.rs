@@ -112,6 +112,7 @@ mod auction {
 }
 
 #[derive(Accounts)]
+#[instruction(nonce: u8)]
 pub struct CreateAuction<'info> {
     #[account(
         init,
@@ -121,7 +122,8 @@ pub struct CreateAuction<'info> {
 
             "auction".as_bytes(),
         ],
-        space = 8 + 1 + 35 * 5 + 8
+        space = 8 + 1 + 35 * 5 + 8,
+        bump = nonce
     )]
     auction: Box<Account<'info, Auction>>,
     seller: Signer<'info>,
@@ -144,6 +146,7 @@ pub struct CreateAuction<'info> {
 }
 
 #[derive(Accounts)]
+#[instruction(nonce: u8)]
 pub struct CreateBid<'info> {
     #[account(
         mut, 
@@ -158,7 +161,8 @@ pub struct CreateBid<'info> {
             bidder.to_account_info().key.as_ref(), 
             "bid".as_bytes(),
         ],
-        space = 8 + 32 + 8
+        space = 8 + 32 + 8,
+        bump = nonce
     )]
     bid: Box<Account<'info, Bid>>,
     bidder: Signer<'info>,
