@@ -58,6 +58,10 @@ mod auction {
         auction.refund_receiver = *ctx.accounts.from.to_account_info().key;
         auction.price = price;
 
+        let bid = &mut ctx.accounts.bid;
+        bid.price = price;
+        bid.bidder = *ctx.accounts.bidder.key;
+
         Ok(())
     }
 
@@ -98,70 +102,93 @@ mod auction {
 
 #[derive(Accounts)]
 pub struct CreateAuction<'info> {
-    #[account(init)]
-    auction: ProgramAccount<'info, Auction>,
-    seller: AccountInfo<'info>,
-    #[account("&item_holder.owner == &Pubkey::find_program_address(&[&seller.key.to_bytes()], &program_id).0")]
+    #[account(
+        init,
+        payer = seller,
+    )]
+    auction: Box<Account<'info, Auction>>,
+    #[account(mut)]
+    seller: Signer<'info>,
+    #[account(
+        constraint = item_holder.owner == auction_singer.key()
+    )]
     item_holder: CpiAccount<'info, TokenAccount>,
-    #[account("&currency_holder.owner == &Pubkey::find_program_address(&[&seller.key.to_bytes()], &program_id).0")]
+    #[account(
+        constraint = currency_holder.owner == auction_singer.key()
+    )]
     currency_holder: CpiAccount<'info, TokenAccount>,
+    /// CHECK: This is auction signer. no need to check
+    auction_singer: UncheckedAccount<'info>,
     rent: Sysvar<'info, Rent>,
 }
 
 #[derive(Accounts)]
 pub struct Bid<'info> {
-    #[account(mut, "auction.ongoing")]
-    auction: ProgramAccount<'info, Auction>,
-    #[account(signer)]
-    bidder: AccountInfo<'info>,
+    #[account(
+        mut, 
+        constraint = auction.ongoing,
+        has_one = currency_holder
+    )]
+    auction: Box<Account<'info, Auction>>,
+    #[account(
+        init,
+        payer = bidder,
+    )]
+    bid: Box<Account<'info, Bid>>,
+    bidder: Signer<'info>,
     #[account(
         mut,
-        "from.mint == currency_holder.mint",
-        "&from.owner == from_auth.key"
+        constraint = from.mint == currency_holder.mint,
+        constraint = &from.owner == bidder.key
     )]
-    from: CpiAccount<'info, TokenAccount>,
-    #[account(signer)]
-    from_auth: AccountInfo<'info>,
+    from: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        "currency_holder.to_account_info().key == &auction.currency_holder"
     )]
-    currency_holder: CpiAccount<'info, TokenAccount>,
-    #[account("&currency_holder.owner == currency_holder_auth.key")]
-    currency_holder_auth: AccountInfo<'info>,
-    #[account(mut, "ori_refund_receiver.key == &Pubkey::default() || ori_refund_receiver.key == &auction.refund_receiver")]
-    ori_refund_receiver: AccountInfo<'info>,
-    #[account("token_program.key == &token::ID")]
-    token_program: AccountInfo<'info>,
+    currency_holder: Box<Account<'info, TokenAccount>>,
+    #[account(
+        constraint = &currency_holder.owner == auction_singer.key
+    )]
+    /// CHECK: This is auction signer. no need to check
+    auction_singer: UncheckedAccount<'info>,
+    #[account(
+        mut, 
+        constraint = ori_refund_receiver.key == &Pubkey::default() || ori_refund_receiver.key == &auction.refund_receiver
+    )]
+    ori_refund_receiver: Box<Account<'info, TokenAccount>>,
+    token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
 pub struct CloseAuction<'info> {
-    #[account(mut, "auction.ongoing")]
-    auction: ProgramAccount<'info, Auction>,
-    #[account(signer)]
-    seller: AccountInfo<'info>,
+    #[account(
+        mut, 
+        constraint = auction.ongoing
+    )]
+    auction: Box<Account<'info, Auction>>,
+    seller: Signer<'info>,
     #[account(
         mut,
-        "item_holder.to_account_info().key == &auction.item_holder"
-        "&item_holder.owner == &Pubkey::find_program_address(&[&seller.key.to_bytes()], &program_id).0"
+        constraint = item_holder.to_account_info().key == &auction.item_holder,
+        constraint = &item_holder.owner == auction_singer.key(
     )]
     item_holder: CpiAccount<'info, TokenAccount>,
-    item_holder_auth: AccountInfo<'info>,
-    #[account(mut, "item_receiver.owner == auction.bidder")]
-    item_receiver: CpiAccount<'info, TokenAccount>,
+    /// CHECK: This is auction signer. no need to check
+    auction_singer: UncheckedAccount<'info>,
+    #[account(
+        mut, 
+        constraint = item_receiver.owner == auction.bidder
+    )]
+    item_receiver: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
-        "currency_holder.to_account_info().key == &auction.currency_holder"
-        "&currency_holder.owner == &Pubkey::find_program_address(&[&seller.key.to_bytes()], &program_id).0"
+        constraint = currency_holder.to_account_info().key == &auction.currency_holder,
+        constraint = &currency_holder.owner == auction_singer.key(
     )]
-    currency_holder: CpiAccount<'info, TokenAccount>,
-    #[account("&currency_holder.owner == currency_holder_auth.key")]
-    currency_holder_auth: AccountInfo<'info>,
+    currency_holder: Box<Account<'info, TokenAccount>>,
     #[account(mut)]
-    currency_receiver: CpiAccount<'info, TokenAccount>,
-    #[account("token_program.key == &token::ID")]
-    token_program: AccountInfo<'info>,
+    currency_receiver: Box<Account<'info, TokenAccount>>,
+    token_program: Program<'info, Token>,
 }
 
 #[account]
@@ -172,6 +199,12 @@ pub struct Auction {
     currency_holder: Pubkey,
     bidder: Pubkey,
     refund_receiver: Pubkey,
+    price: u64,
+}
+
+#[account]
+pub struct Bid {
+    bidder: Pubkey,
     price: u64,
 }
 
