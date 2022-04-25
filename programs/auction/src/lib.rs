@@ -5,7 +5,7 @@ use anchor_spl::token::{self, TokenAccount, Transfer};
 declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
 
 #[program]
-pub mod auction {
+pub mod auction_contract {
     use super::*;
 
     pub fn create_auction(ctx: Context<CreateAuction>, start_price: u64) -> Result<()> {

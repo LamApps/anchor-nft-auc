@@ -1,12 +1,12 @@
 [package]
-name = "auction"
+name = "auction-contract"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "auction"
+name = "auction_contract"
 
 [features]
 no-entrypoint = []
