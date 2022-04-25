@@ -123,9 +123,9 @@ pub struct CreateAuction<'info> {
             "auction".as_bytes(),
         ],
         space = 8 + 1 + 35 * 5 + 8,
-        bump = nonce
     )]
     auction: Box<Account<'info, Auction>>,
+    #[account(mut)]
     seller: Signer<'info>,
     #[account(
         constraint = item_holder.owner == auction_singer.key()
@@ -151,7 +151,8 @@ pub struct CreateBid<'info> {
     #[account(
         mut, 
         constraint = auction.ongoing,
-        has_one = currency_holder
+        has_one = currency_holder,
+        
     )]
     auction: Box<Account<'info, Auction>>,
     #[account(
@@ -162,9 +163,9 @@ pub struct CreateBid<'info> {
             "bid".as_bytes(),
         ],
         space = 8 + 32 + 8,
-        bump = nonce
     )]
     bid: Box<Account<'info, Bid>>,
+    #[account(mut)]
     bidder: Signer<'info>,
     #[account(
         mut,
