@@ -15,6 +15,17 @@ mod auction {
         auction.currency_holder = *ctx.accounts.currency_holder.to_account_info().key;
         auction.bidder = *ctx.accounts.seller.key;
         auction.price = start_price;
+
+        let cpi_ctx = CpiContext::new(
+            ctx.accounts.token_program.to_account_info(),
+            token::Transfer {
+                from: ctx.accounts.seller_item.to_account_info(),
+                to: ctx.accounts.item_holder.to_account_info(),
+                authority: ctx.accounts.seller.to_account_info(), //todo use user account as signer
+            },
+        );
+        token::transfer(cpi_ctx, 1 as u64)?;
+
         Ok(())
     }
 
@@ -105,14 +116,23 @@ pub struct CreateAuction<'info> {
     #[account(
         init,
         payer = seller,
+        seeds = [
+            bidder.to_account_info().key.as_ref(), 
+
+            "auction".as_bytes(),
+        ],
+        space = 8 + 1 + 35 * 5 + 8
     )]
     auction: Box<Account<'info, Auction>>,
-    #[account(mut)]
     seller: Signer<'info>,
     #[account(
         constraint = item_holder.owner == auction_singer.key()
     )]
     item_holder: CpiAccount<'info, TokenAccount>,
+    #[account(
+        constraint = seller_item.owner == seller.key()
+    )]
+    seller_item: CpiAccount<'info, TokenAccount>,
     #[account(
         constraint = currency_holder.owner == auction_singer.key()
     )]
@@ -120,6 +140,7 @@ pub struct CreateAuction<'info> {
     /// CHECK: This is auction signer. no need to check
     auction_singer: UncheckedAccount<'info>,
     rent: Sysvar<'info, Rent>,
+    token_program: Program<'info, Token>,
 }
 
 #[derive(Accounts)]
@@ -133,6 +154,11 @@ pub struct CreateBid<'info> {
     #[account(
         init,
         payer = bidder,
+        seeds = [
+            bidder.to_account_info().key.as_ref(), 
+            "bid".as_bytes(),
+        ],
+        space = 8 + 32 + 8
     )]
     bid: Box<Account<'info, Bid>>,
     bidder: Signer<'info>,
